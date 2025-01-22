@@ -1,0 +1,21 @@
+{
+  "name": "shell-companion-app",
+  "version": "1.0.0",
+  "description": "Shell Companion App with dual login support",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.3.1",
+    "express-session": "^1.17.3",
+    "auth0": "^4.2.0",
+    "ejs": "^3.1.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+} 

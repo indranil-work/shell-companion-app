@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auth0 Callback</title>
+</head>
+<body>
+  <script>
+    const tokens = <%- tokens %>;
+    localStorage.setItem('auth0_access_token', tokens.access_token);
+    localStorage.setItem('auth0_refresh_token', tokens.refresh_token);
+    window.location.href = '/dashboard';
+  </script>
+</body>
+</html> 
