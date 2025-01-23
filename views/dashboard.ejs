@@ -19,6 +19,53 @@
   </div>
 
   <script>
+    // Get session ID from stored ID token
+    function getSessionId() {
+      const idToken = localStorage.getItem('id_token');
+      if (!idToken) return null;
+      
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      return payload.sid;
+    }
+
+    async function checkSession() {
+      const sessionId = getSessionId();
+      if (!sessionId) {
+        console.log('No session ID found');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/check-session/${sessionId}`);
+        const data = await response.json();
+        
+        if (!data.valid) {
+          console.log('Session invalid, redirecting to login');
+          // Clear tokens
+          localStorage.removeItem('auth0_access_token');
+          localStorage.removeItem('auth0_refresh_token');
+          localStorage.removeItem('id_token');
+          
+          // Redirect to existing Auth0 login route
+          window.location.href = '/auth0-login';
+        }
+      } catch (error) {
+        console.error('Session check failed:', error);
+      }
+    }
+
+    // Initial check
+    checkSession();
+
+    // Set interval and store the ID
+    const intervalId = setInterval(checkSession, 10000);
+
+    // Cleanup on page unload or navigation
+    window.addEventListener('beforeunload', () => {
+      clearInterval(intervalId);
+    });
+
+
     function decodeToken(token) {
       try {
         const base64Url = token.split('.')[1];
@@ -123,8 +170,7 @@
 
       const tokenInfo = document.getElementById('tokenInfo');
       if (decodedToken) {
-        tokenInfo.innerHTML = `
-          <h3>${tokenType} Token Information:</h3>
+        tokenInfo.innerHTML = `          <h3>${tokenType} Token Information:</h3>
           <pre>${JSON.stringify(decodedToken, null, 2)}</pre>
         `;
       } else {

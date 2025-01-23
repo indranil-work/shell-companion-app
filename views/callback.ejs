@@ -8,6 +8,7 @@
     const tokens = <%- tokens %>;
     localStorage.setItem('auth0_access_token', tokens.access_token);
     localStorage.setItem('auth0_refresh_token', tokens.refresh_token);
+    localStorage.setItem('id_token', tokens.id_token);
     window.location.href = '/dashboard';
   </script>
 </body>

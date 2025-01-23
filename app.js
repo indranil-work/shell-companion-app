@@ -150,6 +150,72 @@ app.post('/exchange-token', async (req, res) => {
   }
 });
 
+async function getManagementToken() {
+  try {
+    const formData = new URLSearchParams();
+    formData.append('client_id', process.env.AUTH0_M2M_CLIENT_ID);
+    formData.append('client_secret', process.env.AUTH0_M2M_CLIENT_SECRET);
+    formData.append('audience', `https://${process.env.AUTH0_TENANT_DOMAIN}/api/v2/`);
+    formData.append('grant_type', 'client_credentials');
+    formData.append('scope', 'read:users read:sessions');
+
+    const response = await fetch(`https://${process.env.AUTH0_TENANT_DOMAIN}/oauth/token`, {
+      method: 'POST',
+      headers: { 
+        'content-type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    if (!data.access_token) {
+      throw new Error('Failed to get management token');
+    }
+
+    return data.access_token;
+  } catch (error) {
+    console.error('Error getting management token:', error.message);
+    throw error;
+  }
+}
+
+async function checkSessionStatus(sessionId) {
+  try {
+    const managementToken = await getManagementToken();
+    
+    if (!managementToken) {
+      return false;
+    }
+    
+    const response = await fetch(`https://${process.env.AUTH0_TENANT_DOMAIN}/api/v2/sessions/${sessionId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${managementToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    const responseData = await response.json();
+    console.log('Session check response:', {
+      status: response.status,
+      data: responseData
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Session check failed:', error.message);
+    return false;
+  }
+}
+
+app.get('/check-session/:sessionId', async (req, res) => {
+  const { sessionId } = req.params;
+  const isValid = await checkSessionStatus(sessionId);
+  res.json({ valid: isValid });
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
